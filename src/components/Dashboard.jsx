@@ -1,15 +1,25 @@
-function Dashboard() {
-
+function Dashboard({ requests = [] }) {
   const stats = [
-    { title: 'Total Requests', count: 12 },
-    { title: 'Pending', count: 5 },
-    { title: 'Approved', count: 4 },
-    { title: 'Completed', count: 3 },
+    {
+      title: 'Total Requests',
+      count: requests.length,
+    },
+    {
+      title: 'Pending',
+      count: requests.filter((request) => request.status === 'Pending').length,
+    },
+    {
+      title: 'Approved',
+      count: requests.filter((request) => request.status === 'Approved').length,
+    },
+    {
+      title: 'Completed',
+      count: requests.filter((request) => request.status === 'Completed').length,
+    },
   ]
 
   return (
     <div>
-
       <div className="mb-8">
         <h2 className="text-3xl font-bold text-slate-800">
           Dashboard
@@ -21,7 +31,6 @@ function Dashboard() {
       </div>
 
       <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-4">
-
         {stats.map((item) => (
           <div
             key={item.title}
@@ -36,9 +45,7 @@ function Dashboard() {
             </h3>
           </div>
         ))}
-
       </div>
-
     </div>
   )
 }

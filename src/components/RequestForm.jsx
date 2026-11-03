@@ -1,3 +1,4 @@
+
 import { useState } from 'react'
 
 const initialFormData = {
@@ -8,11 +9,12 @@ const initialFormData = {
   description: '',
 }
 
-function RequestForm() {
+function RequestForm({ onSubmitRequest }) {
   const [formData, setFormData] = useState(initialFormData)
   const [errors, setErrors] = useState({})
   const [success, setSuccess] = useState(false)
 
+  // Handle input changes
   function handleChange(e) {
     const { name, value } = e.target
 
@@ -27,6 +29,7 @@ function RequestForm() {
     }))
   }
 
+  // Validate and submit form
   function handleSubmit(e) {
     e.preventDefault()
 
@@ -54,21 +57,30 @@ function RequestForm() {
 
     setErrors(newErrors)
 
-    if (Object.keys(newErrors).length === 0) {
-
-      console.log('Submitted Request:', formData)
-
-      // Clear all form fields
-      setFormData(initialFormData)
-
-      // Clear validation errors
-      setErrors({})
-
-      // Show success popup
-      setSuccess(true)
+    // Stop submission if validation fails
+    if (Object.keys(newErrors).length > 0) {
+      return
     }
+
+    // Send request data to App.jsx
+    onSubmitRequest({
+      ...formData,
+      id: Date.now(),
+      status: 'Pending',
+      createdAt: new Date().toLocaleDateString(),
+    })
+
+    // Clear form fields
+    setFormData(initialFormData)
+
+    // Clear validation errors
+    setErrors({})
+
+    // Show success modal
+    setSuccess(true)
   }
 
+  // Close success modal
   function closeModal() {
     setSuccess(false)
   }
@@ -76,10 +88,14 @@ function RequestForm() {
   const inputClass =
     'w-full rounded-lg border border-slate-300 px-4 py-3 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100'
 
+  const labelClass =
+    'mb-2 block font-medium text-slate-700'
+
   return (
     <>
       <div className="max-w-3xl">
 
+        {/* Page Heading */}
         <h2 className="text-3xl font-bold text-slate-800">
           New Request
         </h2>
@@ -88,6 +104,7 @@ function RequestForm() {
           Submit a new request using the form below.
         </p>
 
+        {/* Request Form */}
         <form
           onSubmit={handleSubmit}
           noValidate
@@ -96,21 +113,24 @@ function RequestForm() {
 
           {/* Requester Name */}
           <div>
-            <label className="mb-2 block font-medium text-slate-700">
+            <label htmlFor="requesterName" className={labelClass}>
               Requester Name *
             </label>
 
             <input
+              id="requesterName"
               type="text"
               name="requesterName"
               value={formData.requesterName}
               onChange={handleChange}
               className={inputClass}
               placeholder="Enter your name"
+              aria-invalid={Boolean(errors.requesterName)}
+              aria-describedby={errors.requesterName ? 'requesterName-error' : undefined}
             />
 
             {errors.requesterName && (
-              <p className="mt-1 text-sm text-red-600">
+              <p id="requesterName-error" className="mt-1 text-sm text-red-600">
                 {errors.requesterName}
               </p>
             )}
@@ -118,21 +138,24 @@ function RequestForm() {
 
           {/* Request Title */}
           <div>
-            <label className="mb-2 block font-medium text-slate-700">
+            <label htmlFor="title" className={labelClass}>
               Request Title *
             </label>
 
             <input
+              id="title"
               type="text"
               name="title"
               value={formData.title}
               onChange={handleChange}
               className={inputClass}
               placeholder="Enter request title"
+              aria-invalid={Boolean(errors.title)}
+              aria-describedby={errors.title ? 'title-error' : undefined}
             />
 
             {errors.title && (
-              <p className="mt-1 text-sm text-red-600">
+              <p id="title-error" className="mt-1 text-sm text-red-600">
                 {errors.title}
               </p>
             )}
@@ -140,15 +163,18 @@ function RequestForm() {
 
           {/* Category */}
           <div>
-            <label className="mb-2 block font-medium text-slate-700">
+            <label htmlFor="category" className={labelClass}>
               Category *
             </label>
 
             <select
+              id="category"
               name="category"
               value={formData.category}
               onChange={handleChange}
               className={inputClass}
+              aria-invalid={Boolean(errors.category)}
+              aria-describedby={errors.category ? 'category-error' : undefined}
             >
               <option value="">Select category</option>
               <option value="IT Support">IT Support</option>
@@ -158,7 +184,7 @@ function RequestForm() {
             </select>
 
             {errors.category && (
-              <p className="mt-1 text-sm text-red-600">
+              <p id="category-error" className="mt-1 text-sm text-red-600">
                 {errors.category}
               </p>
             )}
@@ -166,15 +192,18 @@ function RequestForm() {
 
           {/* Priority */}
           <div>
-            <label className="mb-2 block font-medium text-slate-700">
+            <label htmlFor="priority" className={labelClass}>
               Priority *
             </label>
 
             <select
+              id="priority"
               name="priority"
               value={formData.priority}
               onChange={handleChange}
               className={inputClass}
+              aria-invalid={Boolean(errors.priority)}
+              aria-describedby={errors.priority ? 'priority-error' : undefined}
             >
               <option value="">Select priority</option>
               <option value="Low">Low</option>
@@ -183,7 +212,7 @@ function RequestForm() {
             </select>
 
             {errors.priority && (
-              <p className="mt-1 text-sm text-red-600">
+              <p id="priority-error" className="mt-1 text-sm text-red-600">
                 {errors.priority}
               </p>
             )}
@@ -191,29 +220,33 @@ function RequestForm() {
 
           {/* Description */}
           <div>
-            <label className="mb-2 block font-medium text-slate-700">
+            <label htmlFor="description" className={labelClass}>
               Description *
             </label>
 
             <textarea
+              id="description"
               name="description"
               value={formData.description}
               onChange={handleChange}
               rows="4"
               className={inputClass}
               placeholder="Describe your request..."
+              aria-invalid={Boolean(errors.description)}
+              aria-describedby={errors.description ? 'description-error' : undefined}
             />
 
             {errors.description && (
-              <p className="mt-1 text-sm text-red-600">
+              <p id="description-error" className="mt-1 text-sm text-red-600">
                 {errors.description}
               </p>
             )}
           </div>
 
+          {/* Submit Button */}
           <button
             type="submit"
-            className="rounded-lg bg-blue-600 px-6 py-3 font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2"
+            className="rounded-lg bg-blue-600 px-6 py-3 font-medium text-white transition hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2"
           >
             Submit Request
           </button>
@@ -240,7 +273,7 @@ function RequestForm() {
               type="button"
               onClick={closeModal}
               aria-label="Close success message"
-              className="absolute right-4 top-4 flex h-9 w-9 items-center justify-center rounded-full text-2xl text-slate-500 hover:bg-slate-100 hover:text-slate-800"
+              className="absolute right-4 top-4 flex h-9 w-9 items-center justify-center rounded-full text-2xl text-slate-500 transition hover:bg-slate-100 hover:text-slate-800"
             >
               &times;
             </button>
@@ -252,6 +285,7 @@ function RequestForm() {
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
+                aria-hidden="true"
               >
                 <path
                   strokeLinecap="round"
@@ -262,6 +296,7 @@ function RequestForm() {
               </svg>
             </div>
 
+            {/* Success Message */}
             <h2
               id="success-title"
               className="mb-3 text-2xl font-bold text-slate-800"
@@ -274,10 +309,11 @@ function RequestForm() {
               We will review it shortly.
             </p>
 
+            {/* Done Button */}
             <button
               type="button"
               onClick={closeModal}
-              className="rounded-lg bg-blue-600 px-8 py-3 font-semibold text-white hover:bg-blue-700"
+              className="rounded-lg bg-blue-600 px-8 py-3 font-semibold text-white transition hover:bg-blue-700"
             >
               Done
             </button>
