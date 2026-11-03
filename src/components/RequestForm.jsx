@@ -1,7 +1,7 @@
 
 import { useState } from 'react'
 
-const initialFormData = {
+const emptyForm = {
   requesterName: '',
   title: '',
   category: '',
@@ -9,161 +9,168 @@ const initialFormData = {
   description: '',
 }
 
-function RequestForm({ onSubmitRequest }) {
-  const [formData, setFormData] = useState(initialFormData)
+function RequestForm({
+  onSubmitRequest,
+  initialData = null,
+  isEditing = false,
+}) {
+  const [formData, setFormData] = useState(() => ({
+    ...emptyForm,
+    ...(initialData || {}),
+  }))
+
   const [errors, setErrors] = useState({})
   const [success, setSuccess] = useState(false)
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
-  // Handle input changes
   function handleChange(e) {
     const { name, value } = e.target
 
-    setFormData((prevData) => ({
-      ...prevData,
+    setFormData((previousData) => ({
+      ...previousData,
       [name]: value,
     }))
 
-    setErrors((prevErrors) => ({
-      ...prevErrors,
+    setErrors((previousErrors) => ({
+      ...previousErrors,
       [name]: '',
     }))
   }
 
-  // Validate and submit form
   function handleSubmit(e) {
     e.preventDefault()
+
+    if (isSubmitting) return
 
     const newErrors = {}
 
     if (!formData.requesterName.trim()) {
-      newErrors.requesterName = 'Name is required'
+      newErrors.requesterName = 'Requester name is required.'
     }
 
     if (!formData.title.trim()) {
-      newErrors.title = 'Request title is required'
+      newErrors.title = 'Request title is required.'
     }
 
     if (!formData.category) {
-      newErrors.category = 'Please select a category'
+      newErrors.category = 'Please select a category.'
     }
 
     if (!formData.priority) {
-      newErrors.priority = 'Please select a priority'
+      newErrors.priority = 'Please select a priority.'
     }
 
     if (!formData.description.trim()) {
-      newErrors.description = 'Description is required'
+      newErrors.description = 'Description is required.'
     }
 
-    setErrors(newErrors)
-
-    // Stop submission if validation fails
     if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors)
       return
     }
 
-    // Send request data to App.jsx
-    onSubmitRequest({
+    setIsSubmitting(true)
+
+    const requestData = {
       ...formData,
-      id: Date.now(),
-      status: 'Pending',
-      createdAt: new Date().toLocaleDateString(),
-    })
+      id: initialData?.id ?? Date.now(),
+      status: initialData?.status ?? 'Pending',
+      createdAt: initialData?.createdAt ?? new Date().toLocaleDateString(),
+    }
 
-    // Clear form fields
-    setFormData(initialFormData)
+    try {
+      onSubmitRequest(requestData)
 
-    // Clear validation errors
-    setErrors({})
+      if (!isEditing) {
+        setFormData(emptyForm)
+      }
 
-    // Show success modal
-    setSuccess(true)
+      setErrors({})
+      setSuccess(true)
+    } finally {
+      setIsSubmitting(false)
+    }
   }
-
-  // Close success modal
-  function closeModal() {
-    setSuccess(false)
-  }
-
-  const inputClass =
-    'w-full rounded-lg border border-slate-300 px-4 py-3 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100'
-
-  const labelClass =
-    'mb-2 block font-medium text-slate-700'
 
   return (
-    <>
-      <div className="max-w-3xl">
+    <div className="mx-auto max-w-3xl space-y-6">
+      <div>
+        <h1 className="text-3xl font-bold text-slate-800">
+          {isEditing ? 'Edit Request' : 'New Request'}
+        </h1>
 
-        {/* Page Heading */}
-        <h2 className="text-3xl font-bold text-slate-800">
-          New Request
-        </h2>
-
-        <p className="mt-2 mb-8 text-slate-500">
-          Submit a new request using the form below.
+        <p className="mt-2 text-slate-500">
+          {isEditing
+            ? 'Update the information for this request.'
+            : 'Fill in the form to submit a new request.'}
         </p>
+      </div>
 
-        {/* Request Form */}
-        <form
-          onSubmit={handleSubmit}
-          noValidate
-          className="space-y-6 rounded-xl bg-white p-6 shadow-sm"
-        >
+      <form
+        onSubmit={handleSubmit}
+        noValidate
+        className="space-y-5 rounded-xl bg-white p-6 shadow-sm md:p-8"
+      >
+        <div>
+          <label
+            htmlFor="requesterName"
+            className="mb-2 block text-sm font-medium text-slate-700"
+          >
+            Requester Name *
+          </label>
 
-          {/* Requester Name */}
+          <input
+            id="requesterName"
+            name="requesterName"
+            type="text"
+            value={formData.requesterName}
+            onChange={handleChange}
+            aria-invalid={Boolean(errors.requesterName)}
+            aria-describedby={errors.requesterName ? 'requesterName-error' : undefined}
+            placeholder="Enter your full name"
+            className="w-full rounded-lg border border-slate-300 px-4 py-3 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+          />
+
+          {errors.requesterName && (
+            <p id="requesterName-error" className="mt-1 text-sm text-red-600">
+              {errors.requesterName}
+            </p>
+          )}
+        </div>
+
+        <div>
+          <label
+            htmlFor="title"
+            className="mb-2 block text-sm font-medium text-slate-700"
+          >
+            Request Title *
+          </label>
+
+          <input
+            id="title"
+            name="title"
+            type="text"
+            value={formData.title}
+            onChange={handleChange}
+            aria-invalid={Boolean(errors.title)}
+            aria-describedby={errors.title ? 'title-error' : undefined}
+            placeholder="Enter request title"
+            className="w-full rounded-lg border border-slate-300 px-4 py-3 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+          />
+
+          {errors.title && (
+            <p id="title-error" className="mt-1 text-sm text-red-600">
+              {errors.title}
+            </p>
+          )}
+        </div>
+
+        <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
           <div>
-            <label htmlFor="requesterName" className={labelClass}>
-              Requester Name *
-            </label>
-
-            <input
-              id="requesterName"
-              type="text"
-              name="requesterName"
-              value={formData.requesterName}
-              onChange={handleChange}
-              className={inputClass}
-              placeholder="Enter your name"
-              aria-invalid={Boolean(errors.requesterName)}
-              aria-describedby={errors.requesterName ? 'requesterName-error' : undefined}
-            />
-
-            {errors.requesterName && (
-              <p id="requesterName-error" className="mt-1 text-sm text-red-600">
-                {errors.requesterName}
-              </p>
-            )}
-          </div>
-
-          {/* Request Title */}
-          <div>
-            <label htmlFor="title" className={labelClass}>
-              Request Title *
-            </label>
-
-            <input
-              id="title"
-              type="text"
-              name="title"
-              value={formData.title}
-              onChange={handleChange}
-              className={inputClass}
-              placeholder="Enter request title"
-              aria-invalid={Boolean(errors.title)}
-              aria-describedby={errors.title ? 'title-error' : undefined}
-            />
-
-            {errors.title && (
-              <p id="title-error" className="mt-1 text-sm text-red-600">
-                {errors.title}
-              </p>
-            )}
-          </div>
-
-          {/* Category */}
-          <div>
-            <label htmlFor="category" className={labelClass}>
+            <label
+              htmlFor="category"
+              className="mb-2 block text-sm font-medium text-slate-700"
+            >
               Category *
             </label>
 
@@ -172,14 +179,15 @@ function RequestForm({ onSubmitRequest }) {
               name="category"
               value={formData.category}
               onChange={handleChange}
-              className={inputClass}
               aria-invalid={Boolean(errors.category)}
               aria-describedby={errors.category ? 'category-error' : undefined}
+              className="w-full rounded-lg border border-slate-300 bg-white px-4 py-3 outline-none focus:border-blue-500"
             >
               <option value="">Select category</option>
               <option value="IT Support">IT Support</option>
-              <option value="Hardware">Hardware</option>
-              <option value="Software">Software</option>
+              <option value="Maintenance">Maintenance</option>
+              <option value="HR">HR</option>
+              <option value="Finance">Finance</option>
               <option value="Other">Other</option>
             </select>
 
@@ -190,9 +198,11 @@ function RequestForm({ onSubmitRequest }) {
             )}
           </div>
 
-          {/* Priority */}
           <div>
-            <label htmlFor="priority" className={labelClass}>
+            <label
+              htmlFor="priority"
+              className="mb-2 block text-sm font-medium text-slate-700"
+            >
               Priority *
             </label>
 
@@ -201,9 +211,9 @@ function RequestForm({ onSubmitRequest }) {
               name="priority"
               value={formData.priority}
               onChange={handleChange}
-              className={inputClass}
               aria-invalid={Boolean(errors.priority)}
               aria-describedby={errors.priority ? 'priority-error' : undefined}
+              className="w-full rounded-lg border border-slate-300 bg-white px-4 py-3 outline-none focus:border-blue-500"
             >
               <option value="">Select priority</option>
               <option value="Low">Low</option>
@@ -217,111 +227,88 @@ function RequestForm({ onSubmitRequest }) {
               </p>
             )}
           </div>
+        </div>
 
-          {/* Description */}
-          <div>
-            <label htmlFor="description" className={labelClass}>
-              Description *
-            </label>
-
-            <textarea
-              id="description"
-              name="description"
-              value={formData.description}
-              onChange={handleChange}
-              rows="4"
-              className={inputClass}
-              placeholder="Describe your request..."
-              aria-invalid={Boolean(errors.description)}
-              aria-describedby={errors.description ? 'description-error' : undefined}
-            />
-
-            {errors.description && (
-              <p id="description-error" className="mt-1 text-sm text-red-600">
-                {errors.description}
-              </p>
-            )}
-          </div>
-
-          {/* Submit Button */}
-          <button
-            type="submit"
-            className="rounded-lg bg-blue-600 px-6 py-3 font-medium text-white transition hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2"
+        <div>
+          <label
+            htmlFor="description"
+            className="mb-2 block text-sm font-medium text-slate-700"
           >
-            Submit Request
-          </button>
+            Description *
+          </label>
 
-        </form>
-      </div>
+          <textarea
+            id="description"
+            name="description"
+            rows="5"
+            value={formData.description}
+            onChange={handleChange}
+            aria-invalid={Boolean(errors.description)}
+            aria-describedby={errors.description ? 'description-error' : undefined}
+            placeholder="Describe your request..."
+            className="w-full resize-y rounded-lg border border-slate-300 px-4 py-3 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+          />
 
-      {/* Success Modal */}
+          {errors.description && (
+            <p id="description-error" className="mt-1 text-sm text-red-600">
+              {errors.description}
+            </p>
+          )}
+        </div>
+
+        <button
+          type="submit"
+          disabled={isSubmitting}
+          className="w-full rounded-lg bg-blue-600 px-6 py-3 font-semibold text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
+        >
+          {isSubmitting
+            ? 'Please wait...'
+            : isEditing
+              ? 'Update Request'
+              : 'Submit Request'}
+        </button>
+      </form>
+
       {success && (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
-          onClick={closeModal}
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="success-title"
+          onClick={() => setSuccess(false)}
         >
           <div
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="success-title"
-            className="relative w-full max-w-md rounded-2xl bg-white p-8 text-center shadow-2xl"
+            className="w-full max-w-sm rounded-2xl bg-white p-8 text-center shadow-xl"
             onClick={(e) => e.stopPropagation()}
           >
-
-            {/* Close Button */}
-            <button
-              type="button"
-              onClick={closeModal}
-              aria-label="Close success message"
-              className="absolute right-4 top-4 flex h-9 w-9 items-center justify-center rounded-full text-2xl text-slate-500 transition hover:bg-slate-100 hover:text-slate-800"
-            >
-              &times;
-            </button>
-
-            {/* Success Icon */}
-            <div className="mx-auto mb-5 flex h-20 w-20 items-center justify-center rounded-full bg-green-100">
-              <svg
-                className="h-10 w-10 text-green-600"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-                aria-hidden="true"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2.5"
-                  d="M5 13l4 4L19 7"
-                />
-              </svg>
+            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-green-100 text-3xl text-green-600">
+              ✓
             </div>
 
-            {/* Success Message */}
             <h2
               id="success-title"
-              className="mb-3 text-2xl font-bold text-slate-800"
+              className="mt-5 text-2xl font-bold text-slate-800"
             >
-              Request Submitted!
+              {isEditing ? 'Request Updated!' : 'Request Submitted!'}
             </h2>
 
-            <p className="mb-6 text-slate-500">
-              Your request has been submitted successfully.
-              We will review it shortly.
+            <p className="mt-2 text-slate-500">
+              {isEditing
+                ? 'Your request has been updated successfully.'
+                : 'Your request has been submitted successfully.'}
             </p>
 
-            {/* Done Button */}
             <button
               type="button"
-              onClick={closeModal}
-              className="rounded-lg bg-blue-600 px-8 py-3 font-semibold text-white transition hover:bg-blue-700"
+              onClick={() => setSuccess(false)}
+              className="mt-6 w-full rounded-lg bg-blue-600 px-5 py-3 font-semibold text-white hover:bg-blue-700"
             >
               Done
             </button>
-
           </div>
         </div>
       )}
-    </>
+    </div>
   )
 }
 

@@ -5,6 +5,7 @@ function RequestList({
   requests = [],
   onUpdateStatus,
   onDeleteRequest,
+  onViewRequest,
 }) {
   const [searchTerm, setSearchTerm] = useState('')
   const [categoryFilter, setCategoryFilter] = useState('All')
@@ -66,7 +67,6 @@ function RequestList({
         </p>
       </div>
 
-      {/* Search and Filters */}
       <div className="rounded-xl bg-white p-5 shadow-sm">
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
           <input
@@ -74,12 +74,14 @@ function RequestList({
             placeholder="Search by title or requester..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
+            aria-label="Search requests"
             className="rounded-lg border border-slate-300 px-4 py-3 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
           />
 
           <select
             value={categoryFilter}
             onChange={(e) => setCategoryFilter(e.target.value)}
+            aria-label="Filter by category"
             className="rounded-lg border border-slate-300 px-4 py-3 outline-none focus:border-blue-500"
           >
             <option value="All">All Categories</option>
@@ -93,6 +95,7 @@ function RequestList({
           <select
             value={priorityFilter}
             onChange={(e) => setPriorityFilter(e.target.value)}
+            aria-label="Filter by priority"
             className="rounded-lg border border-slate-300 px-4 py-3 outline-none focus:border-blue-500"
           >
             <option value="All">All Priorities</option>
@@ -104,6 +107,7 @@ function RequestList({
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
+            aria-label="Filter by status"
             className="rounded-lg border border-slate-300 px-4 py-3 outline-none focus:border-blue-500"
           >
             <option value="All">All Statuses</option>
@@ -128,20 +132,20 @@ function RequestList({
         </div>
       </div>
 
-      {/* Requests Table */}
       <div className="overflow-hidden rounded-xl bg-white shadow-sm">
         {filteredRequests.length === 0 ? (
           <div className="p-10 text-center">
             <h2 className="text-lg font-semibold text-slate-700">
               No requests found
             </h2>
+
             <p className="mt-2 text-sm text-slate-500">
               Try changing your search or filter options.
             </p>
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[850px] text-left">
+            <table className="w-full min-w-[1000px] text-left">
               <thead className="bg-slate-50 text-sm text-slate-600">
                 <tr>
                   <th className="px-5 py-4 font-semibold">Requester</th>
@@ -150,7 +154,7 @@ function RequestList({
                   <th className="px-5 py-4 font-semibold">Priority</th>
                   <th className="px-5 py-4 font-semibold">Status</th>
                   <th className="px-5 py-4 font-semibold">Date</th>
-                  <th className="px-5 py-4 font-semibold">Action</th>
+                  <th className="px-5 py-4 font-semibold">Actions</th>
                 </tr>
               </thead>
 
@@ -206,13 +210,23 @@ function RequestList({
                     </td>
 
                     <td className="px-5 py-4">
-                      <button
-                        type="button"
-                        onClick={() => handleDelete(request.id)}
-                        className="rounded-lg px-3 py-2 text-sm font-medium text-red-600 hover:bg-red-50"
-                      >
-                        Delete
-                      </button>
+                      <div className="flex items-center gap-2">
+                        <button
+                          type="button"
+                          onClick={() => onViewRequest(request)}
+                          className="rounded-lg bg-blue-50 px-3 py-2 text-sm font-medium text-blue-600 hover:bg-blue-100"
+                        >
+                          View
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() => handleDelete(request.id)}
+                          className="rounded-lg px-3 py-2 text-sm font-medium text-red-600 hover:bg-red-50"
+                        >
+                          Delete
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}
