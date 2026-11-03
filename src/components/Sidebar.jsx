@@ -5,7 +5,7 @@ function Sidebar({ currentPage, onNavigate }) {
     <aside className="w-full bg-slate-900 p-6 text-white md:min-h-screen md:w-64">
 
       <h1 className="mb-10 text-2xl font-bold">
-        RequestHub
+        Demo RMS
       </h1>
 
       <nav className="flex flex-col gap-3">
